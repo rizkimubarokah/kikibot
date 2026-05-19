@@ -1,0 +1,460 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Outfit', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+
+  /* Default Theme (Midnight) */
+  --color-primary: #d946ef;
+  --color-secondary: #8b5cf6;
+  --color-accent: #06b6d4;
+  --color-dark: #0f172a;
+  --color-dark-lighter: #1e293b;
+  --bg-gradient-1: hsla(253, 16%, 7%, 1);
+  --bg-gradient-2: hsla(225, 39%, 30%, 1);
+  --bg-gradient-3: hsla(339, 49%, 30%, 1);
+}
+
+.theme-cyberpunk {
+  --color-primary: #facc15;
+  /* Yellow */
+  --color-secondary: #ef4444;
+  /* Red */
+  --color-accent: #22d3ee;
+  /* Cyan */
+  --color-dark: #121212;
+  --color-dark-lighter: #2a2a2a;
+  --bg-gradient-1: #000000;
+  --bg-gradient-2: #3f0e40;
+  --bg-gradient-3: #b91c1c;
+}
+
+.theme-pastel {
+  --color-primary: #f9a8d4;
+  /* Pink */
+  --color-secondary: #c4b5fd;
+  /* Violet */
+  --color-accent: #67e8f9;
+  /* Cyan */
+  --color-dark: #4c1d95;
+  /* Deep Purple */
+  --color-dark-lighter: #5b21b6;
+  --bg-gradient-1: #2e1065;
+  --bg-gradient-2: #4c1d95;
+  --bg-gradient-3: #7e22ce;
+}
+
+.theme-matrix {
+  --color-primary: #22c55e;
+  /* Green */
+  --color-secondary: #16a34a;
+  --color-accent: #4ade80;
+  --color-dark: #020617;
+  --color-dark-lighter: #052e16;
+  --bg-gradient-1: #000000;
+  --bg-gradient-2: #022c22;
+  --bg-gradient-3: #064e3b;
+}
+
+.theme-astronomy {
+  --color-primary: #93c5fd;
+  /* Soft Blue */
+  --color-secondary: #c084fc;
+  /* Soft Purple */
+  --color-accent: #fde047;
+  /* Yellow Star */
+  --color-dark: #0f172a;
+  --color-dark-lighter: #1e293b;
+  --bg-gradient-1: #020617;
+  --bg-gradient-2: #1e1b4b;
+  --bg-gradient-3: #4c1d95;
+}
+
+.theme-yinyang {
+  --color-primary: #111827;
+  /* Dark Gray */
+  --color-secondary: #f3f4f6;
+  /* White */
+  --color-accent: #9ca3af;
+  /* Gray */
+  --color-dark: #e5e7eb;
+  /* Light Gray Background */
+  --color-dark-lighter: #ffffff;
+  --bg-gradient-1: #ffffff;
+  --bg-gradient-2: #e5e7eb;
+  --bg-gradient-3: #d1d5db;
+  color-scheme: light;
+}
+
+.theme-blackhole {
+  --color-primary: #ea580c;
+  /* Intense Orange */
+  --color-secondary: #7c3aed;
+  /* Deep Purple */
+  --color-accent: #fcd34d;
+  /* Yellow Accretion */
+  --color-dark: #000000;
+  /* Absolute Black */
+  --color-dark-lighter: #0f0f0f;
+  --bg-gradient-1: #000000;
+  --bg-gradient-2: #000000;
+  --bg-gradient-3: #1a0526;
+}
+
+.theme-mountain {
+  --color-primary: #10b981;
+  /* Emerald */
+  --color-secondary: #0ea5e9;
+  /* Sky Blue */
+  --color-accent: #fef08a;
+  /* Sun */
+  --color-dark: #0f172a;
+  /* Slate */
+  --color-dark-lighter: #1e293b;
+  --bg-gradient-1: #0f172a;
+  --bg-gradient-2: #1e293b;
+  --bg-gradient-3: #334155;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--color-dark);
+  background-image:
+    radial-gradient(at 0% 0%, var(--bg-gradient-1) 0, transparent 50%),
+    radial-gradient(at 50% 0%, var(--bg-gradient-2) 0, transparent 50%),
+    radial-gradient(at 100% 0%, var(--bg-gradient-3) 0, transparent 50%);
+  background-attachment: fixed;
+  color: #e2e8f0;
+  overflow-x: hidden;
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* Custom Scrollbar for Anime Vibe */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+.glass-panel {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.anime-glow {
+  box-shadow: 0 0 15px rgba(217, 70, 239, 0.5);
+}
+
+.text-glow {
+  text-shadow: 0 0 10px rgba(217, 70, 239, 0.7);
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-20px) rotate(2deg);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 5s ease-in-out 1s infinite;
+}
+
+@keyframes twinkle {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.star {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: twinkle var(--duration, 3s) infinite ease-in-out;
+}
+
+@keyframes shoot {
+  0% {
+    transform: translateX(0) translateY(0) rotate(-45deg);
+    opacity: 1;
+    width: 0px;
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(-1000px) translateY(1000px) rotate(-45deg);
+    opacity: 0;
+    width: 200px;
+  }
+}
+
+.shooting-star {
+  position: absolute;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+  filter: drop-shadow(0 0 5px white);
+  animation: shoot var(--duration, 5s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  z-index: 5;
+}
+
+@keyframes asteroid-fall {
+  0% {
+    transform: translate(50vw, -10vh) rotate(0deg) scale(0.5);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  90% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-10vw, 110vh) rotate(360deg) scale(1.2);
+    opacity: 0;
+  }
+}
+
+.asteroid {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: #3f3f46;
+  border-radius: 40% 60% 50% 50% / 50% 40% 60% 50%;
+  box-shadow: inset -5px -5px 10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(251, 191, 36, 0.4);
+  animation: asteroid-fall var(--duration, 8s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  z-index: 4;
+}
+
+.asteroid::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  height: 4px;
+  background: linear-gradient(90deg, #fbbf24, transparent);
+  transform: translateY(-50%) rotate(-45deg);
+  filter: blur(2px);
+  opacity: 0.6;
+}
+
+/* Horror Game Intense Visual Effects */
+@keyframes intense-shake {
+
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  10% {
+    transform: translate(-12px, -10px) rotate(-2deg);
+  }
+
+  20% {
+    transform: translate(12px, 10px) rotate(2deg);
+  }
+
+  30% {
+    transform: translate(-10px, 12px) rotate(-1.5deg);
+  }
+
+  40% {
+    transform: translate(10px, -12px) rotate(1.5deg);
+  }
+
+  50% {
+    transform: translate(-14px, -8px) rotate(-2.5deg);
+  }
+
+  60% {
+    transform: translate(14px, 8px) rotate(2.5deg);
+  }
+
+  70% {
+    transform: translate(-8px, 14px) rotate(-1deg);
+  }
+
+  80% {
+    transform: translate(8px, -14px) rotate(1deg);
+  }
+
+  90% {
+    transform: translate(-6px, -6px) rotate(-0.5deg);
+  }
+}
+
+.animate-intense-shake {
+  animation: intense-shake 0.6s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+@keyframes blood-splatter {
+  0% {
+    opacity: 0;
+    background-size: 0% 0%;
+    background-position: 50% 50%;
+  }
+
+  3% {
+    opacity: 0.9;
+    background-size: 120% 120%;
+  }
+
+  100% {
+    opacity: 0;
+    background-size: 150% 150%;
+  }
+}
+
+.blood-splatter-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(139, 0, 0, 0.6) 0%, transparent 60%);
+  animation: blood-splatter 1.2s ease-out forwards;
+  z-index: 9999;
+}
+
+@keyframes glitch-effect {
+  0% {
+    transform: translate(0) skewX(0deg);
+    filter: hue-rotate(0deg);
+  }
+
+  15% {
+    transform: translate(-5px, 2px) skewX(3deg);
+    filter: hue-rotate(90deg);
+  }
+
+  30% {
+    transform: translate(3px, -2px) skewX(-3deg);
+    filter: hue-rotate(180deg);
+  }
+
+  45% {
+    transform: translate(2px, 3px) skewX(2deg);
+    filter: hue-rotate(270deg);
+  }
+
+  60% {
+    transform: translate(-3px, -3px) skewX(-2deg);
+    filter: hue-rotate(360deg);
+  }
+
+  75% {
+    transform: translate(4px, 1px) skewX(1deg);
+    filter: hue-rotate(45deg);
+  }
+
+  90% {
+    transform: translate(-1px, -1px) skewX(-1deg);
+    filter: hue-rotate(315deg);
+  }
+
+  100% {
+    transform: translate(0) skewX(0deg);
+    filter: hue-rotate(0deg);
+  }
+}
+
+.animate-glitch {
+  animation: glitch-effect 0.4s cubic-bezier(.25, .46, .45, .94) infinite;
+}
+
+.vignette-dark {
+  box-shadow: inset 0 0 120px 60px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes flash-effect {
+
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.flash-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+  animation: flash-effect 0.2s ease-out;
+  z-index: 9998;
+}
+
+@keyframes pulse-red {
+
+  0%,
+  100% {
+    background-color: rgba(127, 29, 29, 0.2);
+  }
+
+  50% {
+    background-color: rgba(127, 29, 29, 0.5);
+  }
+}
+
+.animate-pulse-red {
+  animation: pulse-red 1s ease-in-out infinite;
+}
