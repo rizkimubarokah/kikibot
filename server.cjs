@@ -38,6 +38,28 @@ const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || "";
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
 const OPENROUTER_VISION_MODEL = process.env.OPENROUTER_VISION_MODEL || "google/gemini-2.5-flash-lite";
 
+function stringifyErrorValue(value) {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
+
+    if (typeof value === "object") {
+        if (typeof value.message === "string") return value.message;
+        if (typeof value.detail === "string") return value.detail;
+        if (typeof value.error === "string") return value.error;
+        if (value.error) return stringifyErrorValue(value.error);
+        if (value.details) return stringifyErrorValue(value.details);
+
+        try {
+            return JSON.stringify(value);
+        } catch {
+            return "Error tidak dikenal dari server.";
+        }
+    }
+
+    return String(value);
+}
+
 // Initialize AI
 async function initAI() {
     try {
@@ -113,7 +135,11 @@ async function sendOpenRouterMessage(message, systemPrompt = "", attachments = [
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-        const error = new Error(data.error?.message || data.message || response.statusText);
+        const errorMessage = stringifyErrorValue(data.error?.message)
+            || stringifyErrorValue(data.error)
+            || stringifyErrorValue(data.message)
+            || response.statusText;
+        const error = new Error(errorMessage);
         error.statusCode = response.status;
         throw error;
     }
