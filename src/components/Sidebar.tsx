@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { X, Gamepad2, Info, Settings, LayoutGrid, Plus, MessageSquare, Pin, Trash2, PinOff } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { X, Brain, Download, Gamepad2, Info, Search, Settings, LayoutGrid, Plus, MessageSquare, Pin, Trash2, PinOff } from 'lucide-react';
 import type { ChatSession, Message } from '../types';
 import ContextSuggestions from './ContextSuggestions';
 
@@ -15,6 +15,10 @@ interface SidebarProps {
     onDeleteSession: (id: string, e: React.MouseEvent) => void;
     messages: Message[];
     onSendMessage: (text: string) => void;
+    onOpenMemory: () => void;
+    onExportChat: () => void;
+    searchQuery: string;
+    onSearchQueryChange: (query: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -28,8 +32,28 @@ const Sidebar: React.FC<SidebarProps> = ({
     onPinSession,
     onDeleteSession,
     messages,
-    onSendMessage
+    onSendMessage,
+    onOpenMemory,
+    onExportChat,
+    searchQuery,
+    onSearchQueryChange
 }) => {
+    const [localQuery, setLocalQuery] = useState(searchQuery);
+
+    useEffect(() => {
+        setLocalQuery(searchQuery);
+    }, [searchQuery]);
+
+    const filteredSessions = useMemo(() => {
+        const normalized = localQuery.trim().toLowerCase();
+        if (!normalized) return sessions;
+
+        return sessions.filter((session) =>
+            session.title.toLowerCase().includes(normalized)
+            || session.messages.some((message) => message.text.toLowerCase().includes(normalized))
+        );
+    }, [localQuery, sessions]);
+
     // Auto-open horror game if URL is /games
     useEffect(() => {
         if (window.location.pathname === '/games') {
@@ -74,6 +98,22 @@ const Sidebar: React.FC<SidebarProps> = ({
                             <Plus className="w-5 h-5" />
                             New Chat
                         </button>
+                        <div className="mt-3 flex gap-2">
+                            <button
+                                onClick={onOpenMemory}
+                                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300 hover:border-primary/50 hover:text-white transition-colors"
+                            >
+                                <Brain className="w-4 h-4" />
+                                Memori
+                            </button>
+                            <button
+                                onClick={onExportChat}
+                                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-gray-300 hover:border-secondary/50 hover:text-white transition-colors"
+                            >
+                                <Download className="w-4 h-4" />
+                                Export
+                            </button>
+                        </div>
                     </div>
 
                     {/* Scrollable Main Content */}
@@ -96,11 +136,23 @@ const Sidebar: React.FC<SidebarProps> = ({
                                 <MessageSquare className="w-4 h-4" />
                                 History
                             </h3>
+                            <div className="mb-3 flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+                                <Search className="w-4 h-4 text-gray-500" />
+                                <input
+                                    value={localQuery}
+                                    onChange={(event) => {
+                                        setLocalQuery(event.target.value);
+                                        onSearchQueryChange(event.target.value);
+                                    }}
+                                    className="w-full bg-transparent text-sm text-white placeholder:text-gray-500 focus:outline-none"
+                                    placeholder="Cari chat..."
+                                />
+                            </div>
                             <div className="space-y-2">
-                                {sessions.length === 0 ? (
+                                {filteredSessions.length === 0 ? (
                                     <p className="text-xs text-gray-600 italic px-2">No history yet</p>
                                 ) : (
-                                    sessions.map(session => (
+                                    filteredSessions.map(session => (
                                         <div
                                             key={session.id}
                                             className={`group relative w-full rounded-xl border transition-all ${currentSessionId === session.id

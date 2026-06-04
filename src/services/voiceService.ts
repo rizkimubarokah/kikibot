@@ -1,41 +1,41 @@
-// Text to Speech - Instant Web Speech API (Google TTS - No delay)
+// Text to Speech - Instant Web Speech API
 let currentUtterance: SpeechSynthesisUtterance | null = null;
 
-export const speakText = async (text: string, isMuted: boolean = false) => {
-    // Stop any current speech
+export const speakText = async (text: string, isMuted: boolean = false, onDone?: () => void) => {
     stopSpeaking();
 
     if (isMuted || !text || text.trim().length === 0) {
+        onDone?.();
         return;
     }
 
     if (!window.speechSynthesis) {
-        console.warn('🎤 [TTS] Speech synthesis not supported');
+        console.warn('TTS speech synthesis not supported');
+        onDone?.();
         return;
     }
 
     try {
-        // Clean text (remove markdown, emojis, emotion tags)
         const cleanText = text
-            .replace(/[#*_`~]/g, '') // Remove markdown
-            .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // Remove emojis
+            .replace(/[#*_`~]/g, '')
+            .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
             .replace(/[\u{1F300}-\u{1F5FF}]/gu, '')
             .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
             .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '')
-            .replace(/\[EMOTION:\w+\]/gi, '') // Remove emotion tags
+            .replace(/\[EMOTION:\w+\]/gi, '')
             .trim();
 
-        if (cleanText.length === 0) return;
+        if (cleanText.length === 0) {
+            onDone?.();
+            return;
+        }
 
         currentUtterance = new SpeechSynthesisUtterance(cleanText);
-
-        // Configure for Indonesian
         currentUtterance.lang = 'id-ID';
         currentUtterance.rate = 1.0;
         currentUtterance.pitch = 1.0;
         currentUtterance.volume = 0.9;
 
-        // Try to get Indonesian voice
         const voices = window.speechSynthesis.getVoices();
         const indonesianVoice = voices.find(v =>
             v.lang.includes('id') || v.lang.includes('ID')
@@ -47,19 +47,18 @@ export const speakText = async (text: string, isMuted: boolean = false) => {
 
         currentUtterance.onend = () => {
             currentUtterance = null;
-            console.log('🎤 [TTS] Speech ended');
+            onDone?.();
         };
 
-        currentUtterance.onerror = (e) => {
-            console.error('🎤 [TTS] Speech error:', e);
+        currentUtterance.onerror = () => {
             currentUtterance = null;
+            onDone?.();
         };
 
         window.speechSynthesis.speak(currentUtterance);
-        console.log('🎤 [TTS] Playing instant Google TTS');
-
     } catch (error) {
-        console.error('🎤 [TTS] Error:', error);
+        console.error('TTS error:', error);
+        onDone?.();
     }
 };
 
@@ -72,7 +71,6 @@ export const stopSpeaking = () => {
     }
 };
 
-// ... keep SpeechRecognizer class if needed ...
 export class SpeechRecognizer {
     private recognition: any;
     private isListening: boolean = false;

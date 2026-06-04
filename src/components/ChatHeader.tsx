@@ -1,14 +1,15 @@
 import React from 'react';
-import { Menu, Volume2, VolumeX } from 'lucide-react';
+import { Command, Menu, Volume2, VolumeX } from 'lucide-react';
 import botAvatar from '../assets/avatar.png';
 
 interface ChatHeaderProps {
     onMenuClick: () => void;
+    onCommandClick?: () => void;
     isMuted?: boolean;
     onToggleMute?: () => void;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ onMenuClick, isMuted = false, onToggleMute }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ onMenuClick, onCommandClick, isMuted = false, onToggleMute }) => {
     return (
         <div className="glass-panel border-b border-white/10 p-4 rounded-none md:rounded-t-3xl flex items-center justify-between z-10 relative">
             <div className="flex items-center gap-3">
@@ -16,6 +17,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ onMenuClick, isMuted = false, o
                     <button
                         onClick={onToggleMute}
                         className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-colors"
+                        title={isMuted ? 'Nyalakan suara' : 'Matikan suara'}
                     >
                         {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                     </button>
@@ -32,12 +34,25 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ onMenuClick, isMuted = false, o
                 </div>
             </div>
 
-            <button
-                onClick={onMenuClick}
-                className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-300"
-            >
-                <Menu className="w-6 h-6" />
-            </button>
+            <div className="flex items-center gap-2">
+                {onCommandClick && (
+                    <button
+                        onClick={onCommandClick}
+                        className="hidden sm:flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-xs text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                        title="Command palette"
+                    >
+                        <Command className="w-4 h-4" />
+                        Ctrl K
+                    </button>
+                )}
+                <button
+                    onClick={onMenuClick}
+                    className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-300"
+                    title="Buka menu"
+                >
+                    <Menu className="w-6 h-6" />
+                </button>
+            </div>
         </div>
     );
 };

@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Sparkles, Calendar } from 'lucide-react';
+import { Brain, Clock, Cloud, FileText, Image, Sparkles, Calendar } from 'lucide-react';
 import { getAutoThemeConfig } from '../utils/timeCycle';
 
-const WelcomeDashboard: React.FC = () => {
+interface WelcomeDashboardProps {
+    onAction?: (text: string) => void;
+}
+
+const WelcomeDashboard: React.FC<WelcomeDashboardProps> = ({ onAction }) => {
     const [currentTime, setCurrentTime] = useState(new Date());
     const { season, time } = getAutoThemeConfig();
 
@@ -22,19 +26,19 @@ const WelcomeDashboard: React.FC = () => {
 
     const getSeasonEmoji = (): string => {
         const seasonMap = {
-            winter: '❄️',
-            spring: '🌸',
-            summer: '☀️',
-            autumn: '🍂'
+            winter: 'Winter',
+            spring: 'Spring',
+            summer: 'Summer',
+            autumn: 'Autumn'
         };
         return seasonMap[season];
     };
 
-    const getTimeEmoji = (): string => {
-        if (time === 'morning') return '🌅';
-        if (time === 'day') return '☀️';
-        if (time === 'sore') return '🌇';
-        return '🌙';
+    const getTimeLabel = (): string => {
+        if (time === 'morning') return 'Pagi';
+        if (time === 'day') return 'Siang';
+        if (time === 'sore') return 'Sore';
+        return 'Malam';
     };
 
     const formatTime = (): string => {
@@ -54,32 +58,36 @@ const WelcomeDashboard: React.FC = () => {
         });
     };
 
+    const shortcuts = [
+        { label: 'Brief harian', icon: <Sparkles className="w-4 h-4" />, text: 'Buatkan brief harian: fokus utama, agenda, dan saran prioritas.' },
+        { label: 'Belajar', icon: <FileText className="w-4 h-4" />, text: 'Aktifkan mode belajar. Bantu aku membuat rangkuman, kuis, dan flashcard.' },
+        { label: 'Gambar', icon: <Image className="w-4 h-4" />, text: 'buatkan gambar pemandangan kota futuristik saat malam, cinematic, detail' },
+        { label: 'Cuaca', icon: <Cloud className="w-4 h-4" />, text: 'cek cuaca Jakarta' }
+    ];
+
     return (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-white">
-            {/* Main Greeting Card */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="text-center mb-8"
+                className="text-center mb-6"
             >
-                <h1 className="text-5xl md:text-7xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-300 to-pink-400">
-                    {getGreeting()} {getTimeEmoji()}
+                <h1 className="text-4xl md:text-6xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-300 to-pink-400">
+                    {getGreeting()}
                 </h1>
-                <p className="text-xl md:text-2xl text-blue-200/70 font-light">
-                    Selamat datang kembali di Galaksi rizki
+                <p className="text-lg md:text-xl text-blue-200/70 font-light">
+                    Ruang kerja AI pribadi bersama rizki
                 </p>
             </motion.div>
 
-            {/* Info Grid */}
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
-                className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl mb-8"
+                className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl mb-5"
             >
-                {/* Time Card */}
-                <div className="glass-panel p-6 rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10">
+                <div className="glass-panel p-5 rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10">
                     <div className="flex items-center gap-3 mb-2">
                         <Clock className="w-5 h-5 text-blue-400" />
                         <span className="text-sm font-medium text-blue-300">Waktu Saat Ini</span>
@@ -88,52 +96,59 @@ const WelcomeDashboard: React.FC = () => {
                     <div className="text-sm text-gray-400 mt-1">{formatDate()}</div>
                 </div>
 
-                {/* Season Card */}
-                <div className="glass-panel p-6 rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10">
+                <div className="glass-panel p-5 rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10">
                     <div className="flex items-center gap-3 mb-2">
                         <Calendar className="w-5 h-5 text-purple-400" />
-                        <span className="text-sm font-medium text-purple-300">Musim</span>
+                        <span className="text-sm font-medium text-purple-300">Konteks Hari Ini</span>
                     </div>
                     <div className="text-3xl font-bold capitalize flex items-center gap-2">
-                        {getSeasonEmoji()} {season}
+                        {getSeasonEmoji()}
                     </div>
-                    <div className="text-sm text-gray-400 mt-1">
-                        {time === 'morning' && 'Pagi Cerah'}
-                        {time === 'day' && 'Siang Terik'}
-                        {time === 'sore' && 'Senja Indah'}
-                        {time === 'night' && 'Malam Sunyi'}
-                    </div>
+                    <div className="text-sm text-gray-400 mt-1">{getTimeLabel()} produktif</div>
                 </div>
             </motion.div>
 
-            {/* Fun Fact Card */}
+            <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45, duration: 0.6 }}
+                className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-2xl mb-5"
+            >
+                {shortcuts.map((item) => (
+                    <button
+                        key={item.label}
+                        onClick={() => onAction?.(item.text)}
+                        className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-gray-200 hover:border-primary/50 hover:bg-primary/10 transition-colors"
+                    >
+                        {item.icon}
+                        <span>{item.label}</span>
+                    </button>
+                ))}
+            </motion.div>
+
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.6 }}
-                className="glass-panel p-6 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-400/20 max-w-2xl w-full"
+                className="glass-panel p-5 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-400/20 max-w-2xl w-full"
             >
                 <div className="flex items-center gap-3 mb-3">
-                    <Sparkles className="w-5 h-5 text-yellow-400" />
-                    <span className="text-sm font-bold text-yellow-300 tracking-wider">FAKTA UNIK HARI INI</span>
+                    <Brain className="w-5 h-5 text-yellow-400" />
+                    <span className="text-sm font-bold text-yellow-300 tracking-wider">FITUR MODERN</span>
                 </div>
                 <p className="text-gray-200 leading-relaxed">
-                    {season === 'winter' && '❄️ Tahukah kamu? Kristal salju sebenarnya tidak pernah berbentuk bulat sempurna. Setiap kepingan salju memiliki pola heksagonal yang unik!'}
-                    {season === 'spring' && '🌸 Tahukah kamu? Bunga sakura hanya mekar selama 7-10 hari dalam setahun, itulah mengapa mereka sangat dihargai di Jepang!'}
-                    {season === 'summer' && '☀️ Tahukah kamu? Matahari bisa memuat lebih dari 1 juta planet Bumi di dalamnya. Sungguh luar biasa!'}
-                    {season === 'autumn' && '🍂 Tahukah kamu? Daun berubah warna di musim gugur karena pohon berhenti memproduksi klorofil, mengungkap warna kuning dan merah yang tersembunyi!'}
+                    Gunakan tombol cepat, buka command palette dengan Ctrl K, upload file untuk dianalisis, atau atur memori supaya rizki menjawab sesuai kebiasaanmu.
                 </p>
             </motion.div>
 
-            {/* CTA */}
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1, duration: 0.8 }}
-                className="mt-8 text-center"
+                className="mt-6 text-center"
             >
                 <p className="text-blue-300/60 text-sm italic">
-                    Ketik sesuatu untuk memulai percakapan... 💬
+                    Ketik sesuatu untuk memulai percakapan...
                 </p>
             </motion.div>
         </div>

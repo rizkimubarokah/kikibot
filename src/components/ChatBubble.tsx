@@ -39,9 +39,10 @@ const SeasonalDecoration: React.FC = () => {
 
 interface ChatBubbleProps {
     message: Message;
+    stopAnimationToken?: number;
 }
 
-const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
+const ChatBubble: React.FC<ChatBubbleProps> = ({ message, stopAnimationToken = 0 }) => {
     const isBot = message.sender === 'bot';
     const [imageStatus, setImageStatus] = useState<'loading' | 'success' | 'error'>('loading');
     const [imageBlobUrl, setImageBlobUrl] = useState<string | null>(null);
@@ -59,6 +60,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
 
     useEffect(() => {
         if (!isBot) return;
+        if (stopAnimationToken > 0) {
+            setDisplayedText(message.text);
+            return;
+        }
 
         // If text is already full, do nothing
         if (displayedText === message.text) return;
@@ -82,7 +87,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
         }, speed);
 
         return () => clearInterval(intervalId);
-    }, [message.text, isBot]); // Depend on message.text to restart if it changes (unlikely for now)
+    }, [message.text, isBot, stopAnimationToken]); // Depend on message.text to restart if it changes (unlikely for now)
 
 
     // Image Loading Logic

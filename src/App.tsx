@@ -20,7 +20,7 @@ import botAvatar from './assets/avatar.png';
 import WelcomeDashboard from './components/WelcomeDashboard';
 import { sendMessageToBot } from './services/customApi';
 import { fetchMediaData } from './services/mediaDownloader';
-import { generateImage } from './services/imageGenerator';
+import { extractImagePrompt, generateImage } from './services/imageGenerator';
 import { extractTextFromPDF } from './services/pdfParser';
 import { extractTextFromImage } from './services/ocrService';
 import { speakText, stopSpeaking } from './services/voiceService';
@@ -31,6 +31,11 @@ import { parseReminderRequest, saveReminder } from './services/reminderService';
 import NotificationManager from './components/NotificationManager';
 import EmotionVignette, { type Emotion } from './components/EmotionVignette';
 import { soundManager } from './utils/soundManager';
+import CommandPalette from './components/CommandPalette';
+import type { CommandId } from './components/CommandPalette';
+import MemoryProfileModal from './components/MemoryProfileModal';
+import { buildMemoryPrompt, getMemoryProfile, saveMemoryProfile, type MemoryProfile } from './services/memoryProfile';
+import { buildChatMarkdown, downloadMarkdown } from './services/chatExport';
 
 const fileToDataUrl = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -112,8 +117,18 @@ function App() {
   const [currentTheme, setCurrentTheme] = useState<Theme>('auto');
   const [currentPersona, setCurrentPersona] = useState<Persona>('default');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isMemoryOpen, setIsMemoryOpen] = useState(false);
+  const [isResponsePlaying, setIsResponsePlaying] = useState(false);
+  const [stopAnimationToken, setStopAnimationToken] = useState(0);
+  const [historySearchQuery, setHistorySearchQuery] = useState('');
+  const [memoryProfile, setMemoryProfile] = useState<MemoryProfile>(() => getMemoryProfile());
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const activeRequestRef = useRef<AbortController | null>(null);
+  const responseTimeoutRef = useRef<number | null>(null);
+  const playbackTimeoutRef = useRef<number | null>(null);
+  const playbackTokenRef = useRef(0);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -259,7 +274,92 @@ function App() {
     }
   }, [currentTheme]);
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setIsCommandPaletteOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  const handleSaveMemoryProfile = (profile: MemoryProfile) => {
+    setMemoryProfile(profile);
+    saveMemoryProfile(profile);
+  };
+
+  const handleExportChat = () => {
+    const session = sessions.find(s => s.id === currentSessionId);
+    const title = (session?.title || 'chat-rizki').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const markdown = buildChatMarkdown(session, messages);
+    downloadMarkdown(`${title || 'chat-rizki'}.md`, markdown);
+  };
+
+  const handleRunCommand = (command: CommandId) => {
+    if (command === 'new-chat') {
+      handleNewChat();
+      return;
+    }
+
+    if (command === 'search') {
+      setIsSidebarOpen(true);
+      setHistorySearchQuery('');
+      return;
+    }
+
+    if (command === 'memory') {
+      setIsMemoryOpen(true);
+      return;
+    }
+
+    if (command === 'export') {
+      handleExportChat();
+      return;
+    }
+
+    if (command === 'game') {
+      setActiveGame('tictactoe');
+      return;
+    }
+
+    const commandPrompts: Record<Exclude<CommandId, 'new-chat' | 'search' | 'memory' | 'export' | 'game'>, string> = {
+      'image-studio': 'Bantu aku membuat prompt gambar modern. Tanyakan rasio, gaya visual, subjek, mood, dan detail penting.',
+      'study-mode': 'Aktifkan mode belajar. Bantu aku membuat rangkuman, kuis, flashcard, dan latihan dari materi yang aku kirim.',
+      'daily-brief': 'Buatkan brief harian: fokus utama, agenda, cuaca yang perlu dicek, dan 3 prioritas hari ini.',
+      weather: 'cek cuaca Jakarta'
+    };
+
+    handleSendMessage(commandPrompts[command]);
+  };
+
+  const handleStopResponse = () => {
+    activeRequestRef.current?.abort();
+    activeRequestRef.current = null;
+
+    if (responseTimeoutRef.current !== null) {
+      window.clearTimeout(responseTimeoutRef.current);
+      responseTimeoutRef.current = null;
+    }
+
+    if (playbackTimeoutRef.current !== null) {
+      window.clearTimeout(playbackTimeoutRef.current);
+      playbackTimeoutRef.current = null;
+    }
+    playbackTokenRef.current += 1;
+
+    setIsTyping(false);
+    setIsResponsePlaying(false);
+    setStopAnimationToken((prev) => prev + 1);
+    setEmotion('neutral');
+    stopSpeaking();
+  };
+
   const handleSendMessage = async (text: string, file?: File) => {
+    handleStopResponse();
+
     const trimmedText = text.trim();
     const outgoingText = trimmedText || (file?.type.startsWith('image/')
       ? 'Tolong jelaskan isi gambar ini.'
@@ -274,6 +374,8 @@ function App() {
 
     setMessages((prev) => [...prev, newUserMessage]);
     setIsTyping(true);
+    const requestController = new AbortController();
+    activeRequestRef.current = requestController;
 
     try {
       let contextContent = "";
@@ -300,10 +402,9 @@ function App() {
             // Sanitize text: remove newlines and extra spaces to prevent URL issues
             const cleanText = extractedText.replace(/\s+/g, ' ').trim();
 
-            // Strictly limit context to avoid URL length issues (max ~400 chars for file context)
-            const truncatedText = cleanText.length > 400 ? cleanText.substring(0, 400) + "...[Truncated due to length]" : cleanText;
+            const truncatedText = cleanText.length > 2000 ? cleanText.substring(0, 2000) + "...[Dipangkas agar respons tetap cepat]" : cleanText;
 
-            contextContent = ` [File Context: ${truncatedText}]`;
+            contextContent = `\n\n[File Context]\n${truncatedText}\n[End File Context]`;
           }
         } catch (e) {
           console.error("File reading error:", e);
@@ -362,23 +463,19 @@ function App() {
       }
 
       // Check for Image Generation Command
-      const imageRegex = /^(?:\/image|buatkan gambar)\s+(.+)$/i;
-      const imageMatch = outgoingText.match(imageRegex);
+      const imagePrompt = extractImagePrompt(outgoingText);
 
-      if (imageMatch) {
-        const prompt = imageMatch[1];
-        const imageUrl = generateImage(prompt);
+      if (imagePrompt) {
+        const imageUrl = generateImage(imagePrompt);
 
         const botMessage: Message = {
           id: Date.now() + 1,
           sender: 'bot',
-          text: `Berikut adalah gambar untuk: **${prompt}**`,
+          text: `Siap, aku buatkan gambar untuk: **${imagePrompt}**`,
           timestamp: Date.now(),
           imageUrl: imageUrl
         };
 
-        setMessages((prev) => [...prev, botMessage]);
-        setIsTyping(false);
         setMessages((prev) => [...prev, botMessage]);
         setIsTyping(false);
         return;
@@ -517,7 +614,7 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
 **WAJIB: Full BAHASA INDONESIA!** Jangan ngomong Inggris, kita orang Indonesia!`,
       };
 
-      const fullSystemPrompt = systemPrompts[currentPersona] + (contextContent ? contextContent : "");
+      const fullSystemPrompt = systemPrompts[currentPersona] + buildMemoryPrompt(memoryProfile) + (contextContent ? contextContent : "");
 
       // --- CHAT MEMORY IMPLEMENTATION ---
       // Get last 10 messages for context
@@ -527,7 +624,11 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
       const finalPrompt = fullSystemPrompt + memoryContext;
 
       // 1. Get raw response from AI first
-      let rawResponse = await sendMessageToBot(outgoingText, finalPrompt, attachments);
+      const rawResponse = await sendMessageToBot(outgoingText, finalPrompt, attachments, requestController.signal);
+
+      if (requestController.signal.aborted) {
+        return;
+      }
 
       // 2. Parse Emotion from the RAW response immediately
       let detectedEmotion: Emotion = 'neutral';
@@ -549,7 +650,12 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
       // 4. Wait for the delay (Show typing indicator)
       // We already set isTyping(true) at start
 
-      setTimeout(() => {
+      responseTimeoutRef.current = window.setTimeout(() => {
+        responseTimeoutRef.current = null;
+        if (requestController.signal.aborted) {
+          return;
+        }
+
         // 5. Update UI after delay
         setEmotion(detectedEmotion);
 
@@ -568,7 +674,26 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
 
         setMessages((prev) => [...prev, newBotMessage]);
         setIsTyping(false);
-        speakText(cleanText, isMuted);
+        setIsResponsePlaying(true);
+        const playbackToken = playbackTokenRef.current + 1;
+        playbackTokenRef.current = playbackToken;
+
+        const finishPlayback = () => {
+          if (playbackTokenRef.current !== playbackToken) return;
+          if (playbackTimeoutRef.current !== null) {
+            window.clearTimeout(playbackTimeoutRef.current);
+            playbackTimeoutRef.current = null;
+          }
+          setIsResponsePlaying(false);
+        };
+
+        speakText(cleanText, isMuted, finishPlayback);
+
+        const playbackDuration = Math.min(Math.max(cleanText.length * 90, 3000), 120000);
+        playbackTimeoutRef.current = window.setTimeout(() => {
+          playbackTimeoutRef.current = null;
+          finishPlayback();
+        }, playbackDuration);
 
         // Auto-reset emotion
         if (detectedEmotion !== 'neutral') {
@@ -579,20 +704,31 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
 
       }, totalDelay);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+
       console.error("Main Loop Error:", error);
       setIsTyping(false); // Stop typing on error
+      const message = error instanceof Error ? error.message : 'Unknown error';
       const errorMessage: Message = {
         id: Date.now() + 1,
         sender: 'bot',
-        text: `Maaf, aku sedang tidak bisa terhubung. Eror: ${error.message || 'Unknown error'}`,
+        text: `Maaf, aku sedang tidak bisa terhubung. Eror: ${message}`,
         timestamp: Date.now(),
       };
       setMessages((prev) => [...prev, errorMessage]);
       speakText(errorMessage.text, isMuted);
 
     } finally {
-      setIsTyping(false);
+      if (activeRequestRef.current === requestController) {
+        activeRequestRef.current = null;
+      }
+
+      if (responseTimeoutRef.current === null) {
+        setIsTyping(false);
+      }
     }
   };
 
@@ -601,6 +737,17 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
       <DynamicBackground theme={currentTheme} />
       <EmotionVignette emotion={emotion} />
       <NotificationManager />
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onRunCommand={handleRunCommand}
+      />
+      <MemoryProfileModal
+        isOpen={isMemoryOpen}
+        profile={memoryProfile}
+        onClose={() => setIsMemoryOpen(false)}
+        onSave={handleSaveMemoryProfile}
+      />
 
       <div className="absolute top-4 right-4 z-50 flex gap-2">
         <PersonaSelector currentPersona={currentPersona} onPersonaChange={setCurrentPersona} />
@@ -622,6 +769,10 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
         onDeleteSession={handleDeleteSession}
         messages={messages}
         onSendMessage={handleSendMessage}
+        onOpenMemory={() => setIsMemoryOpen(true)}
+        onExportChat={handleExportChat}
+        searchQuery={historySearchQuery}
+        onSearchQueryChange={setHistorySearchQuery}
       />
 
       <GameModal
@@ -654,6 +805,7 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
       <ChatContainer>
         <ChatHeader
           onMenuClick={() => setIsSidebarOpen(true)}
+          onCommandClick={() => setIsCommandPaletteOpen(true)}
           isMuted={isMuted}
           onToggleMute={() => {
             const newState = !isMuted;
@@ -666,7 +818,7 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4 relative">
           {messages.length <= 1 && currentPersona === 'default' && (
             <div className="absolute inset-0 z-0">
-              <WelcomeDashboard />
+              <WelcomeDashboard onAction={(text) => handleSendMessage(text)} />
             </div>
           )}
 
@@ -676,7 +828,7 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
               if (index === 0 && msg.sender === 'bot' && messages.length <= 1 && currentPersona === 'default') {
                 return null;
               }
-              return <ChatBubble key={msg.id} message={msg} />;
+              return <ChatBubble key={msg.id} message={msg} stopAnimationToken={stopAnimationToken} />;
             })}
 
             {isTyping && (
@@ -704,7 +856,7 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
           <div ref={messagesEndRef} />
         </div>
 
-        <ChatInput onSendMessage={handleSendMessage} isLoading={isTyping} />
+        <ChatInput onSendMessage={handleSendMessage} onStopResponse={handleStopResponse} isLoading={isTyping || isResponsePlaying} />
       </ChatContainer>
     </div >
   );

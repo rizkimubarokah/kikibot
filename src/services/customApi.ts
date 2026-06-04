@@ -12,11 +12,13 @@ export interface BotAttachment {
 export const sendMessageToBot = async (
     content: string,
     systemPrompt: string = "",
-    attachments: BotAttachment[] = []
+    attachments: BotAttachment[] = [],
+    signal?: AbortSignal
 ): Promise<string> => {
     try {
         const response = await fetch('/api/openrouter', {
             method: 'POST',
+            signal,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
@@ -39,8 +41,12 @@ export const sendMessageToBot = async (
         }
 
         return data.text;
-    } catch (error: any) {
+    } catch (error: unknown) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+            throw error;
+        }
+
         console.error('rizki API error:', error);
-        throw new Error(error.message || "Gagal terhubung ke rizki.");
+        throw new Error(error instanceof Error ? error.message : "Gagal terhubung ke rizki.");
     }
 };

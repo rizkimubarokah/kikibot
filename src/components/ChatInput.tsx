@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Send, Sparkles, Paperclip, Camera, Mic } from 'lucide-react';
+import { Send, Square, Paperclip, Camera, Mic } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SpeechRecognizer } from '../services/voiceService';
 
 interface ChatInputProps {
     onSendMessage: (text: string, file?: File) => void;
+    onStopResponse: () => void;
     isLoading: boolean;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onStopResponse, isLoading }) => {
     const [input, setInput] = useState('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -191,12 +192,17 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    disabled={(!input.trim() && !selectedFile) || isLoading}
-                    type="submit"
-                    className="absolute right-2 p-2 bg-gradient-to-r from-primary to-secondary rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/25"
+                    disabled={!isLoading && !input.trim() && !selectedFile}
+                    type={isLoading ? 'button' : 'submit'}
+                    onClick={isLoading ? onStopResponse : undefined}
+                    className={`absolute right-2 p-2 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition-colors ${isLoading
+                        ? 'bg-red-500 hover:bg-red-600 shadow-red-500/25'
+                        : 'bg-gradient-to-r from-primary to-secondary shadow-primary/25'
+                        }`}
+                    title={isLoading ? 'Stop jawaban' : 'Kirim pesan'}
                 >
                     {isLoading ? (
-                        <Sparkles className="w-5 h-5 animate-spin" />
+                        <Square className="w-5 h-5 fill-current" />
                     ) : (
                         <Send className="w-5 h-5" />
                     )}
