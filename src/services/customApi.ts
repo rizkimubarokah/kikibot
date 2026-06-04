@@ -9,6 +9,20 @@ export interface BotAttachment {
     dataUrl: string;
 }
 
+const getApiEndpoint = () => {
+    const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+    if (configuredBaseUrl) {
+        return `${configuredBaseUrl.replace(/\/$/, '')}/api/openrouter`;
+    }
+
+    const isLocalBrowser = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    if (isLocalBrowser && window.location.port !== '3000') {
+        return 'http://localhost:3000/api/openrouter';
+    }
+
+    return '/api/openrouter';
+};
+
 const formatApiError = (value: unknown): string => {
     if (!value) return '';
     if (typeof value === 'string') return value;
@@ -38,7 +52,7 @@ export const sendMessageToBot = async (
     signal?: AbortSignal
 ): Promise<string> => {
     try {
-        const response = await fetch('/api/openrouter', {
+        const response = await fetch(getApiEndpoint(), {
             method: 'POST',
             signal,
             headers: {
@@ -52,9 +66,19 @@ export const sendMessageToBot = async (
             })
         });
 
-        const data: ApiResponse = await response.json().catch(() => ({}));
+        const rawBody = await response.text();
+        let data: ApiResponse = {};
+        try {
+            data = rawBody ? JSON.parse(rawBody) as ApiResponse : {};
+        } catch {
+            data = {};
+        }
 
         if (!response.ok) {
+            if (response.status === 404 && rawBody.toLowerCase().includes('page could not be found')) {
+                throw new Error('Server API lokal belum tersambung. Jalankan npm run dev supaya backend di port 3000 ikut hidup.');
+            }
+
             throw new Error(formatApiError(data.details) || formatApiError(data.error) || `HTTP Error: ${response.status}`);
         }
 
@@ -69,6 +93,14 @@ export const sendMessageToBot = async (
         }
 
         console.error('rizki API error:', error);
+        if (error instanceof SyntaxError) {
+            throw new Error('Respons API tidak valid. Pastikan server backend berjalan dengan npm run dev.');
+        }
+
+        if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+            throw new Error('Server API lokal belum aktif. Jalankan npm run dev lalu refresh halaman.');
+        }
+
         throw new Error(error instanceof Error ? error.message : "Gagal terhubung ke rizki.");
     }
 };
