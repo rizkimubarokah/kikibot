@@ -232,7 +232,11 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-    console.log(`Environment: Node ${process.version}`);
-});
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`Server running at http://localhost:${port}`);
+        console.log(`Environment: Node ${process.version}`);
+    });
+}
+
+module.exports = app;
