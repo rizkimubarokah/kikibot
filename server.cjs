@@ -30,13 +30,10 @@ const characterAI = new CharacterAI();
 // Map<string, any>
 const chats = new Map();
 
-// Configuration - REPLACE THESE WITH YOUR VALUES
-// You can also use specific environment variables
-const CHARACTER_ID = process.env.CHARACTER_ID || "UvmcFYHfT11SuZvgxiY2sxktiDozY2rh4wsMS10TPGI"; // Default: Programmer Psychologist
-const SESSION_TOKEN = process.env.SESSION_TOKEN || ""; // Put your CAI session token here
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || "";
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
-const OPENROUTER_VISION_MODEL = process.env.OPENROUTER_VISION_MODEL || "google/gemini-2.5-flash-lite";
+// Configuration - Defaults
+const DEFAULT_CHARACTER_ID = "UvmcFYHfT11SuZvgxiY2sxktiDozY2rh4wsMS10TPGI";
+const DEFAULT_MODEL = "openai/gpt-4o-mini";
+const DEFAULT_VISION_MODEL = "google/gemini-2.5-flash-lite";
 
 function stringifyErrorValue(value) {
     if (!value) return "";
@@ -63,9 +60,10 @@ function stringifyErrorValue(value) {
 // Initialize AI
 async function initAI() {
     try {
-        if (SESSION_TOKEN) {
+        const sessionToken = process.env.SESSION_TOKEN;
+        if (sessionToken) {
             console.log("Authenticating with session token...");
-            await characterAI.authenticateWithToken(SESSION_TOKEN);
+            await characterAI.authenticateWithToken(sessionToken);
         } else {
             console.log("Authenticating as guest...");
             await characterAI.authenticateAsGuest();
@@ -79,8 +77,16 @@ async function initAI() {
 const voiceCache = new Map(); // Cache voice IDs
 
 async function sendOpenRouterMessage(message, systemPrompt = "", attachments = []) {
-    if (!OPENROUTER_API_KEY) {
-        const error = new Error("OpenRouter API key belum diatur.");
+    const apiKey = process.env.OPENROUTER_API_KEY || "";
+    if (!apiKey) {
+        const keys = Object.keys(process.env).filter(k => 
+            !k.startsWith('VC_') && 
+            !k.startsWith('AWS_') && 
+            !k.startsWith('LAMBDA_') && 
+            !k.startsWith('_') &&
+            k !== 'NODE_ENV'
+        );
+        const error = new Error(`OpenRouter API key belum diatur. Silakan atur variabel OPENROUTER_API_KEY di Vercel Dashboard. Variabel yang terdeteksi di server saat ini: ${keys.join(', ')}`);
         error.statusCode = 500;
         throw error;
     }
@@ -99,7 +105,10 @@ async function sendOpenRouterMessage(message, systemPrompt = "", attachments = [
         ? attachments.filter((item) => item?.type === 'image' && typeof item.dataUrl === 'string')
         : [];
     const hasImages = imageAttachments.length > 0;
-    const model = hasImages ? OPENROUTER_VISION_MODEL : OPENROUTER_MODEL;
+    
+    const model = hasImages 
+        ? (process.env.OPENROUTER_VISION_MODEL || DEFAULT_VISION_MODEL)
+        : (process.env.OPENROUTER_MODEL || DEFAULT_MODEL);
 
     if (imageAttachments.length > 0) {
         messages.push({
@@ -119,7 +128,7 @@ async function sendOpenRouterMessage(message, systemPrompt = "", attachments = [
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
             'HTTP-Referer': 'http://localhost:5173',
             'X-Title': 'rizki'
@@ -156,7 +165,7 @@ async function sendOpenRouterMessage(message, systemPrompt = "", attachments = [
 
 app.post('/api/tts', async (req, res) => {
     try {
-        const { text, characterId = CHARACTER_ID } = req.body;
+        const { text, characterId = (process.env.CHARACTER_ID || DEFAULT_CHARACTER_ID) } = req.body;
         console.log(`TTS Request for: ${characterId}`);
 
         if (!characterAI.isAuthenticated()) {
