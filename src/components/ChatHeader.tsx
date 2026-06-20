@@ -1,6 +1,6 @@
 import React from 'react';
 import { Command, Menu, Volume2, VolumeX } from 'lucide-react';
-import botAvatar from '../assets/avatar.png';
+import botAvatar from '../assets/hu-tao-profile.webp';
 
 interface ChatHeaderProps {
     onMenuClick: () => void;

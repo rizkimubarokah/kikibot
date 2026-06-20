@@ -16,7 +16,7 @@ import RockPaperScissors from './components/games/RockPaperScissors';
 import HorrorNovel from './components/games/HorrorNovel';
 import InsomniaGame from './components/games/InsomniaGame';
 import type { Message, ChatSession } from './types';
-import botAvatar from './assets/avatar.png';
+import botAvatar from './assets/hu-tao-profile.webp';
 import WelcomeDashboard from './components/WelcomeDashboard';
 import { sendMessageToBot } from './services/customApi';
 import { fetchMediaData } from './services/mediaDownloader';
@@ -34,7 +34,19 @@ import { soundManager } from './utils/soundManager';
 import CommandPalette from './components/CommandPalette';
 import type { CommandId } from './components/CommandPalette';
 import MemoryProfileModal from './components/MemoryProfileModal';
-import { buildMemoryPrompt, getMemoryProfile, saveMemoryProfile, type MemoryProfile } from './services/memoryProfile';
+import AboutRizkiModal from './components/AboutRizkiModal';
+import {
+  buildMemoryPrompt,
+  defaultMemoryProfile,
+  defaultMemorySettings,
+  getMemorySettings,
+  getMemoryProfile,
+  saveMemorySettings,
+  saveMemoryProfile,
+  type MemorySettings,
+  updateMemoryProfileFromChat,
+  type MemoryProfile
+} from './services/memoryProfile';
 import { buildChatMarkdown, downloadMarkdown } from './services/chatExport';
 
 const fileToDataUrl = (file: File): Promise<string> => {
@@ -75,6 +87,46 @@ const resizeImageForVision = async (file: File): Promise<string> => {
   });
 };
 
+const DEFAULT_WEATHER_LOCATION = 'Jakarta';
+type DisplayMode = 'compact' | 'comfortable';
+const DISPLAY_MODE_STORAGE_KEY = 'rizki_display_mode';
+const APP_VERSION = '0.0.0';
+
+const createInitialBotMessage = (): Message => ({
+  id: Date.now(),
+  sender: 'bot',
+  text: "Halo! Aku rizki, asisten virtualmu. Ada yang bisa aku bantu hari ini? 🚀🌌",
+  timestamp: Date.now(),
+});
+
+const cleanWeatherLocation = (value: string) => {
+  const cleaned = value
+    .replace(/\b(?:hari ini|besok|malam ini|sekarang|nanti|dong|ya|tolong|please)\b/gi, ' ')
+    .replace(/[?.!,]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return cleaned.length >= 2 ? cleaned : DEFAULT_WEATHER_LOCATION;
+};
+
+const extractWeatherLocation = (text: string) => {
+  const normalized = text.trim().replace(/\s+/g, ' ');
+  const explicitMatch = normalized.match(/^(?:\/weather|cek cuaca|info cuaca|cuaca)\s+(.+)$/i);
+  if (explicitMatch?.[1]) {
+    const explicitText = explicitMatch[1].trim();
+    const locationAfterPreposition = explicitText.match(/\b(?:di|untuk|pada)\s+(.+)$/i)?.[1];
+    return cleanWeatherLocation(locationAfterPreposition || explicitText);
+  }
+
+  const inlineMatch = normalized.match(/\b(?:cuaca|hujan|panas|dingin|suhu|prakiraan)\b(?:\s+(?:hari ini|besok|malam ini))?(?:\s+(?:di|untuk|pada)\s+(.+))?/i);
+  const location = inlineMatch?.[1]?.trim();
+  if (location) {
+    return cleanWeatherLocation(location);
+  }
+
+  return inlineMatch ? DEFAULT_WEATHER_LOCATION : '';
+};
+
 
 
 function App() {
@@ -105,24 +157,25 @@ function App() {
     if (oldMessages) return JSON.parse(oldMessages);
 
     // Default init
-    return [{
-      id: 1,
-      sender: 'bot',
-      text: "Halo! Aku rizki, asisten virtualmu. Ada yang bisa aku bantu hari ini? 🚀🌌",
-      timestamp: Date.now(),
-    }];
+    return [createInitialBotMessage()];
   });
   const [isTyping, setIsTyping] = useState(false);
   const [emotion, setEmotion] = useState<Emotion>('neutral');
   const [currentTheme, setCurrentTheme] = useState<Theme>('auto');
   const [currentPersona, setCurrentPersona] = useState<Persona>('default');
+  const [displayMode, setDisplayMode] = useState<DisplayMode>(() => {
+    const savedMode = localStorage.getItem(DISPLAY_MODE_STORAGE_KEY);
+    return savedMode === 'compact' ? 'compact' : 'comfortable';
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isMemoryOpen, setIsMemoryOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isResponsePlaying, setIsResponsePlaying] = useState(false);
   const [stopAnimationToken, setStopAnimationToken] = useState(0);
   const [historySearchQuery, setHistorySearchQuery] = useState('');
   const [memoryProfile, setMemoryProfile] = useState<MemoryProfile>(() => getMemoryProfile());
+  const [memorySettings, setMemorySettings] = useState<MemorySettings>(() => getMemorySettings());
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeRequestRef = useRef<AbortController | null>(null);
@@ -178,12 +231,7 @@ function App() {
 
   const handleNewChat = () => {
     const newId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const initialMessage: Message = {
-      id: Date.now(),
-      sender: 'bot',
-      text: "Halo! Aku rizki, asisten virtualmu. Ada yang bisa aku bantu hari ini? 🚀🌌",
-      timestamp: Date.now(),
-    };
+    const initialMessage = createInitialBotMessage();
 
     // Save current session state before switching
     setSessions(prev => {
@@ -240,12 +288,7 @@ function App() {
         } else {
           // Return to clean slate
           const newId = `session-${Date.now()}`;
-          const initialMessage: Message = {
-            id: Date.now(),
-            sender: 'bot',
-            text: "Halo! Aku rizki, asisten virtualmu. Ada yang bisa aku bantu hari ini? 🚀🌌",
-            timestamp: Date.now(),
-          };
+          const initialMessage = createInitialBotMessage();
           setCurrentSessionId(newId);
           setMessages([initialMessage]);
           // Need to update state immediately or next render will handle empty logic?
@@ -275,6 +318,10 @@ function App() {
   }, [currentTheme]);
 
   useEffect(() => {
+    localStorage.setItem(DISPLAY_MODE_STORAGE_KEY, displayMode);
+  }, [displayMode]);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
@@ -291,12 +338,54 @@ function App() {
     saveMemoryProfile(profile);
   };
 
+  const handleSaveMemorySettings = (settings: MemorySettings) => {
+    setMemorySettings(settings);
+    saveMemorySettings(settings);
+  };
+
   const handleExportChat = () => {
     const session = sessions.find(s => s.id === currentSessionId);
     const title = (session?.title || 'chat-rizki').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     const markdown = buildChatMarkdown(session, messages);
     downloadMarkdown(`${title || 'chat-rizki'}.md`, markdown);
   };
+
+  const handleResetAppData = () => {
+    handleStopResponse();
+
+    const newSessionId = `session-${Date.now()}`;
+    const initialMessage = createInitialBotMessage();
+    const initialSession: ChatSession = {
+      id: newSessionId,
+      title: 'New Chat',
+      messages: [initialMessage],
+      timestamp: Date.now()
+    };
+
+    localStorage.removeItem('chat_messages');
+    localStorage.removeItem('chat_sessions');
+    localStorage.removeItem('current_session_id');
+    localStorage.removeItem('chat_reminders');
+    localStorage.removeItem(DISPLAY_MODE_STORAGE_KEY);
+
+    saveMemoryProfile(defaultMemoryProfile);
+    saveMemorySettings(defaultMemorySettings);
+
+    setSessions([initialSession]);
+    setCurrentSessionId(newSessionId);
+    setMessages([initialMessage]);
+    setMemoryProfile(defaultMemoryProfile);
+    setMemorySettings(defaultMemorySettings);
+    setDisplayMode('comfortable');
+    setHistorySearchQuery('');
+    setEmotion('neutral');
+    setIsSidebarOpen(false);
+    setIsMemoryOpen(false);
+    setIsCommandPaletteOpen(false);
+    setActiveGame(null);
+  };
+
+  const totalMessageCount = sessions.reduce((count, session) => count + session.messages.length, 0);
 
   const handleRunCommand = (command: CommandId) => {
     if (command === 'new-chat') {
@@ -373,6 +462,11 @@ function App() {
     };
 
     setMessages((prev) => [...prev, newUserMessage]);
+    setMemoryProfile((prev) => {
+      const nextProfile = updateMemoryProfileFromChat(prev, outgoingText, memorySettings);
+      saveMemoryProfile(nextProfile);
+      return nextProfile;
+    });
     setIsTyping(true);
     const requestController = new AbortController();
     activeRequestRef.current = requestController;
@@ -518,19 +612,15 @@ function App() {
         }
       }
 
-      // Check for Weather Command
-      // Pattern: /weather City or cek cuaca City
-      const weatherRegex = /^(?:\/weather|cek cuaca|info cuaca)\s+(.+)$/i;
-      const weatherMatch = outgoingText.match(weatherRegex);
+      const weatherLocation = extractWeatherLocation(outgoingText);
 
-      if (weatherMatch) {
-        const location = weatherMatch[1];
+      if (weatherLocation) {
         try {
-          const weatherData = await getWeather(location);
+          const weatherData = await getWeather(weatherLocation);
           const botMessage: Message = {
             id: Date.now() + 1,
             sender: 'bot',
-            text: `Ini laporan cuaca terkini untuk **${location}** 🌤️`,
+            text: `Ini laporan cuaca terkini untuk **${weatherLocation}** 🌤️`,
             timestamp: Date.now(),
             weatherData: weatherData
           };
@@ -614,7 +704,8 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
 **WAJIB: Full BAHASA INDONESIA!** Jangan ngomong Inggris, kita orang Indonesia!`,
       };
 
-      const fullSystemPrompt = systemPrompts[currentPersona] + buildMemoryPrompt(memoryProfile) + (contextContent ? contextContent : "");
+      const profileForPrompt = updateMemoryProfileFromChat(memoryProfile, outgoingText, memorySettings);
+      const fullSystemPrompt = systemPrompts[currentPersona] + buildMemoryPrompt(profileForPrompt, outgoingText, memorySettings) + (contextContent ? contextContent : "");
 
       // --- CHAT MEMORY IMPLEMENTATION ---
       // Get last 10 messages for context
@@ -733,7 +824,7 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-0 md:p-6 bg-transparent relative overflow-hidden">
+    <div className={`display-${displayMode} min-h-screen flex items-center justify-center p-0 md:p-6 bg-transparent relative overflow-hidden`}>
       <DynamicBackground theme={currentTheme} />
       <EmotionVignette emotion={emotion} />
       <NotificationManager />
@@ -745,8 +836,20 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
       <MemoryProfileModal
         isOpen={isMemoryOpen}
         profile={memoryProfile}
+        settings={memorySettings}
         onClose={() => setIsMemoryOpen(false)}
         onSave={handleSaveMemoryProfile}
+        onSaveSettings={handleSaveMemorySettings}
+      />
+      <AboutRizkiModal
+        isOpen={isAboutOpen}
+        appVersion={APP_VERSION}
+        sessionCount={sessions.length}
+        messageCount={totalMessageCount}
+        memoryCount={memoryProfile.memories.length}
+        onClose={() => setIsAboutOpen(false)}
+        onExportChat={handleExportChat}
+        onResetData={handleResetAppData}
       />
 
       <div className="absolute top-4 right-4 z-50 flex gap-2">
@@ -771,8 +874,14 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
         onSendMessage={handleSendMessage}
         onOpenMemory={() => setIsMemoryOpen(true)}
         onExportChat={handleExportChat}
+        onOpenAbout={() => {
+          setIsAboutOpen(true);
+          setIsSidebarOpen(false);
+        }}
         searchQuery={historySearchQuery}
         onSearchQueryChange={setHistorySearchQuery}
+        displayMode={displayMode}
+        onDisplayModeChange={setDisplayMode}
       />
 
       <GameModal
@@ -815,14 +924,14 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
         />
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4 relative">
+        <div className="chat-message-list flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4 relative">
           {messages.length <= 1 && currentPersona === 'default' && (
             <div className="absolute inset-0 z-0">
               <WelcomeDashboard onAction={(text) => handleSendMessage(text)} />
             </div>
           )}
 
-          <div className="relative z-10 space-y-4">
+          <div className="chat-message-stack relative z-10 space-y-4">
             {messages.map((msg, index) => {
               // Hide the first bot welcome message if landing scene is showing
               if (index === 0 && msg.sender === 'bot' && messages.length <= 1 && currentPersona === 'default') {
@@ -832,12 +941,12 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
             })}
 
             {isTyping && (
-              <div className="flex justify-start mb-4">
+              <div className="chat-typing-row flex justify-start mb-4">
                 <div className="flex flex-row items-center max-w-[80%]">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full border-2 border-primary/50 bg-dark-lighter mr-3 flex items-center justify-center overflow-hidden">
+                  <div className="chat-avatar flex-shrink-0 w-10 h-10 rounded-full border-2 border-primary/50 bg-dark-lighter mr-3 flex items-center justify-center overflow-hidden">
                     <img src={botAvatar} alt="rizki sedang mengetik" className="w-full h-full object-cover" />
                   </div>
-                  <div className="px-5 py-3 rounded-2xl rounded-tl-none bg-dark-lighter/80 border border-white/5">
+                  <div className="chat-bubble px-5 py-3 rounded-2xl rounded-tl-none bg-dark-lighter/80 border border-white/5">
                     <TypingIndicator />
                   </div>
                 </div>

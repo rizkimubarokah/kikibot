@@ -107,7 +107,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onStopResponse, is
     return (
         <form
             onSubmit={handleSubmit}
-            className="p-4 glass-panel border-t border-white/10 mt-auto rounded-none md:rounded-b-3xl"
+            className="chat-input-panel p-4 glass-panel border-t border-white/10 mt-auto rounded-none md:rounded-b-3xl"
         >
             {selectedFile && (
                 <div className="flex items-center gap-2 mb-2 bg-white/10 w-fit px-3 py-1 rounded-full text-xs text-white">

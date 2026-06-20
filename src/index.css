@@ -458,3 +458,71 @@ body {
 .animate-pulse-red {
   animation: pulse-red 1s ease-in-out infinite;
 }
+
+.display-compact .chat-message-list {
+  padding: 0.75rem;
+}
+
+.display-compact .chat-message-list,
+.display-compact .chat-message-stack {
+  gap: 0.5rem;
+}
+
+.display-compact .chat-bubble-row {
+  margin-bottom: 0.5rem;
+}
+
+.display-compact .chat-bubble-wrap {
+  max-width: 88%;
+}
+
+.display-compact .chat-avatar {
+  width: 2rem;
+  height: 2rem;
+}
+
+.display-compact .chat-avatar svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.display-compact .chat-bubble {
+  padding: 0.55rem 0.8rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  border-radius: 0.9rem;
+}
+
+.display-compact .chat-bubble p {
+  margin-bottom: 0.35rem;
+}
+
+.display-compact .chat-bubble ul,
+.display-compact .chat-bubble ol {
+  margin-bottom: 0.35rem;
+}
+
+.display-compact .chat-input-panel {
+  padding: 0.65rem;
+}
+
+.display-compact .chat-input-panel input[type="text"] {
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+  font-size: 0.9rem;
+}
+
+.display-compact .chat-input-panel button {
+  padding: 0.6rem;
+}
+
+.display-compact .quick-replies {
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.display-compact .quick-replies button {
+  padding: 0.4rem 0.65rem;
+}
