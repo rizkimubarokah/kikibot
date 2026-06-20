@@ -7,9 +7,10 @@ interface ChatHeaderProps {
     onCommandClick?: () => void;
     isMuted?: boolean;
     onToggleMute?: () => void;
+    controls?: React.ReactNode;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ onMenuClick, onCommandClick, isMuted = false, onToggleMute }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ onMenuClick, onCommandClick, isMuted = false, onToggleMute, controls }) => {
     return (
         <div className="glass-panel border-b border-white/10 px-3 py-2.5 sm:p-4 rounded-none md:rounded-t-3xl flex items-center justify-between z-10 relative">
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
@@ -44,6 +45,11 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ onMenuClick, onCommandClick, is
                         <Command className="w-4 h-4" />
                         Ctrl K
                     </button>
+                )}
+                {controls && (
+                    <div className="flex items-center rounded-2xl border border-white/10 bg-white/5 p-0.5 backdrop-blur-md sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+                        {controls}
+                    </div>
                 )}
                 <button
                     onClick={onMenuClick}

@@ -26,10 +26,10 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ currentTheme, onThemeChan
         <div className="relative z-50">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="grid h-9 w-9 place-items-center rounded-full text-gray-300 transition-colors hover:bg-white/5 sm:h-10 sm:w-10"
+                className="grid h-8 w-8 place-items-center rounded-xl text-gray-300 transition-colors hover:bg-white/10 sm:h-10 sm:w-10 sm:rounded-full"
                 title="Change Theme"
             >
-                <Palette className="h-5 w-5" />
+                <Palette className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
 
             {isOpen && (

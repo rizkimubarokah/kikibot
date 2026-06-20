@@ -854,11 +854,6 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
         onResetData={handleResetAppData}
       />
 
-      <div className="app-toolbar absolute right-3 top-14 z-50 flex rounded-2xl border border-white/10 bg-dark/70 p-1 shadow-lg shadow-black/20 backdrop-blur-md sm:right-4 sm:top-4 sm:gap-2 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
-        <PersonaSelector currentPersona={currentPersona} onPersonaChange={setCurrentPersona} />
-        <ThemeSwitcher currentTheme={currentTheme} onThemeChange={setCurrentTheme} />
-      </div>
-
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
@@ -923,6 +918,12 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
             setIsMuted(newState);
             if (newState) stopSpeaking();
           }}
+          controls={(
+            <>
+              <PersonaSelector currentPersona={currentPersona} onPersonaChange={setCurrentPersona} />
+              <ThemeSwitcher currentTheme={currentTheme} onThemeChange={setCurrentTheme} />
+            </>
+          )}
         />
 
         {/* Messages Area */}

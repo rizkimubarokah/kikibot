@@ -530,7 +530,6 @@ body {
 @media (max-width: 640px) {
   .chat-message-list {
     padding: 0.75rem;
-    padding-top: 3.25rem;
   }
 
   .chat-message-stack {
@@ -578,7 +577,4 @@ body {
     white-space: normal;
   }
 
-  .app-toolbar {
-    max-width: calc(100vw - 1.5rem);
-  }
 }
