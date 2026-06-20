@@ -107,11 +107,11 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onStopResponse, is
     return (
         <form
             onSubmit={handleSubmit}
-            className="chat-input-panel p-4 glass-panel border-t border-white/10 mt-auto rounded-none md:rounded-b-3xl"
+            className="chat-input-panel mt-auto rounded-none border-t border-white/10 p-3 glass-panel md:rounded-b-3xl sm:p-4"
         >
             {selectedFile && (
-                <div className="flex items-center gap-2 mb-2 bg-white/10 w-fit px-3 py-1 rounded-full text-xs text-white">
-                    <span className="truncate max-w-[200px]">{selectedFile.name}</span>
+                <div className="mb-2 flex max-w-full items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-white sm:w-fit">
+                    <span className="max-w-[260px] truncate sm:max-w-[200px]">{selectedFile.name}</span>
                     <button
                         type="button"
                         onClick={clearSelectedFile}
@@ -123,7 +123,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onStopResponse, is
             )}
 
             {previewUrl && (
-                <div className="mb-2 w-24 h-24 rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                <div className="mb-2 h-20 w-20 overflow-hidden rounded-xl border border-white/10 bg-black/20 sm:h-24 sm:w-24">
                     <img src={previewUrl} alt="Preview foto" className="w-full h-full object-cover" />
                 </div>
             )}
@@ -134,7 +134,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onStopResponse, is
                 </div>
             )}
 
-            <div className="relative flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <input
                     type="file"
                     ref={fileInputRef}
@@ -153,60 +153,64 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onStopResponse, is
                     className="hidden"
                 />
 
-                <button
-                    type="button"
-                    onClick={() => cameraInputRef.current?.click()}
-                    className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors border border-white/5"
-                    title="Ambil Foto"
-                >
-                    <Camera className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-2 sm:order-none">
+                    <button
+                        type="button"
+                        onClick={() => cameraInputRef.current?.click()}
+                        className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/5 bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-white sm:h-11 sm:w-11"
+                        title="Ambil Foto"
+                    >
+                        <Camera className="h-5 w-5" />
+                    </button>
 
-                <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors border border-white/5"
-                    title="Tambah File atau Foto"
-                >
-                    <Paperclip className="w-5 h-5" />
-                </button>
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/5 bg-white/5 text-gray-400 transition-colors hover:bg-white/10 hover:text-white sm:h-11 sm:w-11"
+                        title="Tambah File atau Foto"
+                    >
+                        <Paperclip className="h-5 w-5" />
+                    </button>
 
-                <button
-                    type="button"
-                    onClick={toggleListening}
-                    className={`p-3 rounded-xl transition-colors border border-white/5 ${isListening ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white'} ${!isSpeechSupported ? 'opacity-60' : ''}`}
-                    title={isSpeechSupported ? "Input Suara" : "Input suara tidak didukung browser ini"}
-                >
-                    <Mic className="w-5 h-5" />
-                </button>
+                    <button
+                        type="button"
+                        onClick={toggleListening}
+                        className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/5 transition-colors sm:h-11 sm:w-11 ${isListening ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white'} ${!isSpeechSupported ? 'opacity-60' : ''}`}
+                        title={isSpeechSupported ? "Input Suara" : "Input suara tidak didukung browser ini"}
+                    >
+                        <Mic className="h-5 w-5" />
+                    </button>
+                </div>
 
-                <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder={isListening ? (interimTranscript || "Dengarkan suara...") : selectedFile ? "Tanya tentang file/foto ini..." : "Ketik pesan..."}
-                    disabled={isLoading}
-                    className="w-full bg-black/30 border border-white/10 rounded-xl pl-4 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 text-white placeholder-gray-400 transition-all"
-                />
+                <div className="relative min-w-0 flex-1">
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder={isListening ? (interimTranscript || "Dengarkan suara...") : selectedFile ? "Tanya tentang file/foto ini..." : "Ketik pesan..."}
+                        disabled={isLoading}
+                        className="w-full rounded-xl border border-white/10 bg-black/30 py-3 pl-4 pr-12 text-sm text-white placeholder-gray-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-base"
+                    />
 
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    disabled={!isLoading && !input.trim() && !selectedFile}
-                    type={isLoading ? 'button' : 'submit'}
-                    onClick={isLoading ? onStopResponse : undefined}
-                    className={`absolute right-2 p-2 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg transition-colors ${isLoading
-                        ? 'bg-red-500 hover:bg-red-600 shadow-red-500/25'
-                        : 'bg-gradient-to-r from-primary to-secondary shadow-primary/25'
-                        }`}
-                    title={isLoading ? 'Stop jawaban' : 'Kirim pesan'}
-                >
-                    {isLoading ? (
-                        <Square className="w-5 h-5 fill-current" />
-                    ) : (
-                        <Send className="w-5 h-5" />
-                    )}
-                </motion.button>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        disabled={!isLoading && !input.trim() && !selectedFile}
+                        type={isLoading ? 'button' : 'submit'}
+                        onClick={isLoading ? onStopResponse : undefined}
+                        className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-white shadow-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isLoading
+                            ? 'bg-red-500 shadow-red-500/25 hover:bg-red-600'
+                            : 'bg-gradient-to-r from-primary to-secondary shadow-primary/25'
+                            }`}
+                        title={isLoading ? 'Stop jawaban' : 'Kirim pesan'}
+                    >
+                        {isLoading ? (
+                            <Square className="h-5 w-5 fill-current" />
+                        ) : (
+                            <Send className="h-5 w-5" />
+                        )}
+                    </motion.button>
+                </div>
             </div>
         </form>
     );

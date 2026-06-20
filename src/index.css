@@ -526,3 +526,59 @@ body {
 .display-compact .quick-replies button {
   padding: 0.4rem 0.65rem;
 }
+
+@media (max-width: 640px) {
+  .chat-message-list {
+    padding: 0.75rem;
+    padding-top: 3.25rem;
+  }
+
+  .chat-message-stack {
+    gap: 0.65rem;
+  }
+
+  .chat-bubble-row {
+    margin-bottom: 0.6rem;
+  }
+
+  .chat-bubble-wrap {
+    max-width: 94%;
+  }
+
+  .chat-avatar {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .chat-bubble {
+    max-width: 100%;
+    padding: 0.7rem 0.85rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .chat-bubble pre,
+  .chat-bubble code {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .chat-typing-row {
+    margin-bottom: 0.6rem;
+  }
+
+  .quick-replies {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .quick-replies button {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .app-toolbar {
+    max-width: calc(100vw - 1.5rem);
+  }
+}

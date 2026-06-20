@@ -22,14 +22,14 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ currentPersona, onPer
         <div className="relative z-50">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-300"
+                className="grid h-9 w-9 place-items-center rounded-full text-gray-300 transition-colors hover:bg-white/5 sm:h-10 sm:w-10"
                 title="Change Persona"
             >
-                <UserCog className="w-5 h-5" />
+                <UserCog className="h-5 w-5" />
             </button>
 
             {isOpen && (
-                <div className="absolute left-0 sm:left-auto right-0 top-full mt-2 w-64 bg-dark-lighter border border-white/10 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-0 top-full mt-2 max-h-[70dvh] w-[min(18rem,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-white/10 bg-dark-lighter shadow-xl animate-in fade-in slide-in-from-top-2 sm:w-64">
                     {personas.map((persona) => (
                         <button
                             key={persona.id}
@@ -37,15 +37,15 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ currentPersona, onPer
                                 onPersonaChange(persona.id);
                                 setIsOpen(false);
                             }}
-                            className={`w-full text-left px-4 py-3 text-sm flex items-start gap-3 hover:bg-white/5 transition-colors ${currentPersona === persona.id ? 'bg-primary/10 border-l-2 border-primary' : ''
+                            className={`flex w-full items-start gap-3 px-4 py-3 text-left text-sm transition-colors hover:bg-white/5 ${currentPersona === persona.id ? 'border-l-2 border-primary bg-primary/10' : ''
                                 }`}
                         >
-                            <span className="text-xl">{persona.icon}</span>
-                            <div>
+                            <span className="text-xl leading-none">{persona.icon}</span>
+                            <div className="min-w-0">
                                 <div className={`font-medium ${currentPersona === persona.id ? 'text-primary' : 'text-gray-200'}`}>
                                     {persona.name}
                                 </div>
-                                <div className="text-xs text-gray-400">{persona.description}</div>
+                                <div className="line-clamp-2 text-xs text-gray-400">{persona.description}</div>
                             </div>
                         </button>
                     ))}

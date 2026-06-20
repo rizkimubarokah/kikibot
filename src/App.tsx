@@ -823,6 +823,8 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
     }
   };
 
+  const isWelcomeDashboardVisible = messages.length <= 1 && currentPersona === 'default';
+
   return (
     <div className={`display-${displayMode} min-h-screen flex items-center justify-center p-0 md:p-6 bg-transparent relative overflow-hidden`}>
       <DynamicBackground theme={currentTheme} />
@@ -852,7 +854,7 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
         onResetData={handleResetAppData}
       />
 
-      <div className="absolute top-4 right-4 z-50 flex gap-2">
+      <div className="app-toolbar absolute right-3 top-14 z-50 flex rounded-2xl border border-white/10 bg-dark/70 p-1 shadow-lg shadow-black/20 backdrop-blur-md sm:right-4 sm:top-4 sm:gap-2 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
         <PersonaSelector currentPersona={currentPersona} onPersonaChange={setCurrentPersona} />
         <ThemeSwitcher currentTheme={currentTheme} onThemeChange={setCurrentTheme} />
       </div>
@@ -925,7 +927,7 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
 
         {/* Messages Area */}
         <div className="chat-message-list flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4 relative">
-          {messages.length <= 1 && currentPersona === 'default' && (
+          {isWelcomeDashboardVisible && (
             <div className="absolute inset-0 z-0">
               <WelcomeDashboard onAction={(text) => handleSendMessage(text)} />
             </div>
@@ -954,7 +956,7 @@ JANGAN LUPA TAG INI! Taruh di AWAL sebelum teks lainnya.`,
             )}
 
             {/* Quick Replies */}
-            {!isTyping && messages.length > 0 && (
+            {!isWelcomeDashboardVisible && !isTyping && messages.length > 0 && (
               <QuickReplies
                 lastBotMessage={messages.filter(m => m.sender === 'bot').slice(-1)[0]?.text}
                 onSelectReply={(text) => handleSendMessage(text)}

@@ -66,17 +66,17 @@ const WelcomeDashboard: React.FC<WelcomeDashboardProps> = ({ onAction }) => {
     ];
 
     return (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-white">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-start overflow-y-auto px-4 pb-5 pt-10 text-white sm:justify-center sm:p-6">
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="text-center mb-6"
+                className="mb-4 text-center sm:mb-6"
             >
-                <h1 className="text-4xl md:text-6xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-300 to-pink-400">
+                <h1 className="mb-1 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-300 to-pink-400 sm:mb-2 md:text-6xl">
                     {getGreeting()}
                 </h1>
-                <p className="text-lg md:text-xl text-blue-200/70 font-light">
+                <p className="text-sm font-light text-blue-200/70 sm:text-lg md:text-xl">
                     Ruang kerja AI pribadi bersama rizki
                 </p>
             </motion.div>
@@ -85,26 +85,26 @@ const WelcomeDashboard: React.FC<WelcomeDashboardProps> = ({ onAction }) => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
-                className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl mb-5"
+                className="mb-4 grid w-full max-w-2xl grid-cols-2 gap-2 sm:mb-5 sm:gap-4"
             >
-                <div className="glass-panel p-5 rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10">
-                    <div className="flex items-center gap-3 mb-2">
-                        <Clock className="w-5 h-5 text-blue-400" />
-                        <span className="text-sm font-medium text-blue-300">Waktu Saat Ini</span>
+                <div className="glass-panel rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl sm:p-5">
+                    <div className="mb-1 flex items-center gap-2 sm:mb-2 sm:gap-3">
+                        <Clock className="h-4 w-4 text-blue-400 sm:h-5 sm:w-5" />
+                        <span className="text-xs font-medium text-blue-300 sm:text-sm">Waktu</span>
                     </div>
-                    <div className="text-3xl font-bold">{formatTime()}</div>
-                    <div className="text-sm text-gray-400 mt-1">{formatDate()}</div>
+                    <div className="text-xl font-bold sm:text-3xl">{formatTime()}</div>
+                    <div className="mt-1 line-clamp-2 text-[11px] text-gray-400 sm:text-sm">{formatDate()}</div>
                 </div>
 
-                <div className="glass-panel p-5 rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10">
-                    <div className="flex items-center gap-3 mb-2">
-                        <Calendar className="w-5 h-5 text-purple-400" />
-                        <span className="text-sm font-medium text-purple-300">Konteks Hari Ini</span>
+                <div className="glass-panel rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl sm:p-5">
+                    <div className="mb-1 flex items-center gap-2 sm:mb-2 sm:gap-3">
+                        <Calendar className="h-4 w-4 text-purple-400 sm:h-5 sm:w-5" />
+                        <span className="text-xs font-medium text-purple-300 sm:text-sm">Konteks</span>
                     </div>
-                    <div className="text-3xl font-bold capitalize flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-xl font-bold capitalize sm:text-3xl">
                         {getSeasonEmoji()}
                     </div>
-                    <div className="text-sm text-gray-400 mt-1">{getTimeLabel()} produktif</div>
+                    <div className="mt-1 text-[11px] text-gray-400 sm:text-sm">{getTimeLabel()} produktif</div>
                 </div>
             </motion.div>
 
@@ -112,13 +112,13 @@ const WelcomeDashboard: React.FC<WelcomeDashboardProps> = ({ onAction }) => {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.45, duration: 0.6 }}
-                className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-2xl mb-5"
+                className="mb-4 grid w-full max-w-2xl grid-cols-2 gap-2 sm:mb-5 sm:grid-cols-4 sm:gap-3"
             >
                 {shortcuts.map((item) => (
                     <button
                         key={item.label}
                         onClick={() => onAction?.(item.text)}
-                        className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-gray-200 hover:border-primary/50 hover:bg-primary/10 transition-colors"
+                        className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-2 py-2 text-xs text-gray-200 transition-colors hover:border-primary/50 hover:bg-primary/10 sm:px-3 sm:py-3 sm:text-sm"
                     >
                         {item.icon}
                         <span>{item.label}</span>
@@ -130,13 +130,13 @@ const WelcomeDashboard: React.FC<WelcomeDashboardProps> = ({ onAction }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.6 }}
-                className="glass-panel p-5 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-400/20 max-w-2xl w-full"
+                className="glass-panel w-full max-w-2xl rounded-2xl border border-blue-400/20 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-3 backdrop-blur-xl sm:p-5"
             >
-                <div className="flex items-center gap-3 mb-3">
-                    <Brain className="w-5 h-5 text-yellow-400" />
-                    <span className="text-sm font-bold text-yellow-300 tracking-wider">FITUR MODERN</span>
+                <div className="mb-2 flex items-center gap-2 sm:mb-3 sm:gap-3">
+                    <Brain className="h-4 w-4 text-yellow-400 sm:h-5 sm:w-5" />
+                    <span className="text-xs font-bold tracking-wider text-yellow-300 sm:text-sm">FITUR MODERN</span>
                 </div>
-                <p className="text-gray-200 leading-relaxed">
+                <p className="text-xs leading-relaxed text-gray-200 sm:text-base">
                     Gunakan tombol cepat, buka command palette dengan Ctrl K, upload file untuk dianalisis, atau atur memori supaya rizki menjawab sesuai kebiasaanmu.
                 </p>
             </motion.div>
@@ -145,9 +145,9 @@ const WelcomeDashboard: React.FC<WelcomeDashboardProps> = ({ onAction }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1, duration: 0.8 }}
-                className="mt-6 text-center"
+                className="mt-4 text-center sm:mt-6"
             >
-                <p className="text-blue-300/60 text-sm italic">
+                <p className="text-xs italic text-blue-300/60 sm:text-sm">
                     Ketik sesuatu untuk memulai percakapan...
                 </p>
             </motion.div>

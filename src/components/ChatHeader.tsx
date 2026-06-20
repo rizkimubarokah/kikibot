@@ -11,26 +11,26 @@ interface ChatHeaderProps {
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({ onMenuClick, onCommandClick, isMuted = false, onToggleMute }) => {
     return (
-        <div className="glass-panel border-b border-white/10 p-4 rounded-none md:rounded-t-3xl flex items-center justify-between z-10 relative">
-            <div className="flex items-center gap-3">
+        <div className="glass-panel border-b border-white/10 px-3 py-2.5 sm:p-4 rounded-none md:rounded-t-3xl flex items-center justify-between z-10 relative">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                 {onToggleMute && (
                     <button
                         onClick={onToggleMute}
-                        className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-colors"
+                        className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/5 text-white/70 transition-colors hover:bg-white/10 hover:text-white sm:h-10 sm:w-10"
                         title={isMuted ? 'Nyalakan suara' : 'Matikan suara'}
                     >
-                        {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                        {isMuted ? <VolumeX className="h-4 w-4 sm:h-5 sm:w-5" /> : <Volume2 className="h-4 w-4 sm:h-5 sm:w-5" />}
                     </button>
                 )}
-                <div className="relative">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30 overflow-hidden">
+                <div className="relative shrink-0">
+                    <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-gradient-to-tr from-primary to-accent shadow-lg shadow-primary/30 sm:h-10 sm:w-10">
                         <img src={botAvatar} alt="rizki" className="w-full h-full object-cover" />
                     </div>
                     <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-dark rounded-full"></div>
                 </div>
-                <div>
-                    <h1 className="font-bold text-lg text-white tracking-wide">rizki</h1>
-                    <p className="text-xs text-accent uppercase tracking-wider font-medium">Online</p>
+                <div className="min-w-0">
+                    <h1 className="truncate text-base font-bold tracking-wide text-white sm:text-lg">rizki</h1>
+                    <p className="truncate text-[10px] font-medium uppercase tracking-wider text-accent sm:text-xs">Online</p>
                 </div>
             </div>
 
@@ -47,10 +47,10 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ onMenuClick, onCommandClick, is
                 )}
                 <button
                     onClick={onMenuClick}
-                    className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-300"
+                    className="grid h-9 w-9 place-items-center rounded-full text-gray-300 transition-colors hover:bg-white/5 sm:h-10 sm:w-10"
                     title="Buka menu"
                 >
-                    <Menu className="w-6 h-6" />
+                    <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
             </div>
         </div>

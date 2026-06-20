@@ -26,14 +26,14 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ currentTheme, onThemeChan
         <div className="relative z-50">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-300"
+                className="grid h-9 w-9 place-items-center rounded-full text-gray-300 transition-colors hover:bg-white/5 sm:h-10 sm:w-10"
                 title="Change Theme"
             >
-                <Palette className="w-5 h-5" />
+                <Palette className="h-5 w-5" />
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-40 bg-dark-lighter border border-white/10 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-0 top-full mt-2 max-h-[70dvh] w-[min(15rem,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-white/10 bg-dark-lighter shadow-xl animate-in fade-in slide-in-from-top-2 sm:w-40">
                     {themes.map((theme) => (
                         <button
                             key={theme.id}
@@ -41,14 +41,14 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ currentTheme, onThemeChan
                                 onThemeChange(theme.id);
                                 setIsOpen(false);
                             }}
-                            className={`w-full text-left px-4 py-3 text-sm flex items-center gap-3 hover:bg-white/5 transition-colors ${currentTheme === theme.id ? 'text-primary font-medium' : 'text-gray-300'
+                            className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition-colors hover:bg-white/5 ${currentTheme === theme.id ? 'font-medium text-primary' : 'text-gray-300'
                                 }`}
                         >
                             <div
-                                className="w-3 h-3 rounded-full"
+                                className="h-3 w-3 shrink-0 rounded-full"
                                 style={{ backgroundColor: theme.color }}
                             />
-                            {theme.name}
+                            <span className="truncate">{theme.name}</span>
                         </button>
                     ))}
                 </div>
